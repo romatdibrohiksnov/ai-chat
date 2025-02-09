@@ -2,29 +2,128 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>AI聊天助手</title>
+    <title>AI聊天</title>
     <style>
-        /* 保持原有样式不变 */
-        body { margin: 0; padding: 20px; min-height: 100vh; background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab); background-size: 400% 400%; animation: gradientBG 15s ease infinite; font-family: 'Helvetica Neue', Arial, sans-serif; }
-        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        #chat-container { height: 70vh; border-radius: 15px; backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.9); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); padding: 20px; margin-bottom: 20px; overflow-y: auto; }
-        .message { margin: 15px 0; padding: 12px 18px; border-radius: 20px; display: flex; align-items: center; max-width: 80%; position: relative; }
-        .user-message { background: rgba(255, 255, 255, 0.95); margin-left: auto; }
-        .ai-message { background: rgba(255, 255, 255, 0.95); margin-right: auto; }
-        .avatar { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; margin: 0 12px; }
-        .user-avatar { background: linear-gradient(45deg, rgba(255, 87, 34, 0.8), rgba(255, 152, 0, 0.8)); box-shadow: 0 2px 6px rgba(255, 87, 34, 0.3); }
-        .ai-avatar { background: linear-gradient(45deg, rgba(33, 150, 243, 0.8), rgba(66, 165, 245, 0.8)); box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3); }
-        .message-content { padding: 10px 15px; line-height: 1.5; }
-        #input-container { display: flex; gap: 12px; background: rgba(255, 255, 255, 0.95); border-radius: 25px; padding: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
-        #user-input { flex: 1; padding: 12px 20px; border: none; border-radius: 20px; background: rgba(245, 245, 245, 0.8); font-size: 16px; outline: none; }
-        button { padding: 12px 24px; border: none; border-radius: 20px; background: linear-gradient(45deg, #2196F3, #42A5F5); color: white; font-weight: 500; cursor: pointer; transition: transform 0.2s; }
-        button:hover { transform: translateY(-2px); }
-        button:disabled { background: #cccccc; transform: none; }
-        h1 { color: white; text-align: center; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); margin: 20px 0; }
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        #chat-container {
+            height: 70vh;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin: 15px 0;
+            padding: 12px 18px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            max-width: 80%;
+            position: relative;
+        }
+
+        .user-message {
+            background: rgba(255, 255, 255, 0.95);
+            margin-left: auto;
+            flex-direction: row-reverse;
+        }
+
+        .ai-message {
+            background: rgba(255, 255, 255, 0.95);
+            margin-right: auto;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin: 0 12px;
+        }
+
+        .user-avatar {
+            background: linear-gradient(45deg, rgba(255, 87, 34, 0.8), rgba(255, 152, 0, 0.8));
+            box-shadow: 0 2px 6px rgba(255, 87, 34, 0.3);
+        }
+
+        .ai-avatar {
+            background: linear-gradient(45deg, rgba(33, 150, 243, 0.8), rgba(66, 165, 245, 0.8));
+            box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
+        }
+
+        .message-content {
+            padding: 10px 15px;
+            line-height: 1.5;
+        }
+
+        #input-container {
+            display: flex;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 20px;
+            background: rgba(245, 245, 245, 0.8);
+            font-size: 16px;
+            outline: none;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 20px;
+            background: linear-gradient(45deg, #2196F3, #42A5F5);
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background: #cccccc;
+            transform: none;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
-    <h1>改进版AI聊天助手</h1>
+    <h1>AI聊天助手</h1>
     <div id="chat-container"></div>
     <div id="input-container">
         <input type="text" id="user-input" placeholder="输入消息...">
@@ -32,23 +131,7 @@
     </div>
 
     <script>
-        // 加密配置
-        const CryptoJS = window.CryptoJS;
-        const encryptedAPIKey = 'U2FsdGVkX1+2v8J3J7Z5r4T7p6Y9u1X2v8J3J7Z5r4T7p6Y9u1X2v8J3J7Z5r4T7'; // 示例加密密钥
-        const secretPassphrase = 'mySecretPass123';
-
-        // 解密函数
-        function decryptAPIKey(encrypted) {
-            try {
-                const bytes = CryptoJS.AES.decrypt(encrypted, secretPassphrase);
-                return bytes.toString(CryptoJS.enc.Utf8);
-            } catch (error) {
-                console.error('解密失败:', error);
-                return null;
-            }
-        }
-
-        const API_KEY = decryptAPIKey(encryptedAPIKey);
+        const API_KEY = 'sk-Boq4p7UH7lbzybrEQPmve7HJA01QAwgoFuCKjgQZbBPzCDqS';
         const API_BASE = 'https://chatapi.littlewheat.com/v1';
         const ENDPOINT = '/chat/completions';
 
@@ -56,7 +139,6 @@
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
 
-        // 添加回车支持
         userInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -81,43 +163,16 @@
                     },
                     body: JSON.stringify({
                         model: "gpt-3.5-turbo",
-                        messages: [{ role: "user", content: message }],
-                        stream: true  // 启用流式响应
+                        messages: [{ role: "user", content: message }]
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error(`请求失败 (状态码: ${response.status})`);
-                }
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let aiMessageDiv = addMessage('', 'ai', true);
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    const chunk = decoder.decode(value);
-                    const lines = chunk.split('\n').filter(line => line.trim() !== '');
-                    
-                    for (const line of lines) {
-                        const message = line.replace(/^data: /, '');
-                        if (message === '[DONE]') {
-                            return;
-                        }
-
-                        try {
-                            const parsed = JSON.parse(message);
-                            const content = parsed.choices[0].delta.content;
-                            if (content) {
-                                aiMessageDiv.textContent += content;
-                                chatContainer.scrollTop = chatContainer.scrollHeight;
-                            }
-                        } catch (error) {
-                            console.error('解析错误:', error);
-                        }
-                    }
+                const data = await response.json();
+                if (response.ok) {
+                    const aiMessage = data.choices[0].message.content;
+                    addMessage(aiMessage, 'ai');
+                } else {
+                    throw new Error(data.error?.message || `请求失败 (状态码: ${response.status})`);
                 }
             } catch (error) {
                 addMessage(`错误：${error.message}`, 'ai');
@@ -126,7 +181,7 @@
             }
         }
 
-        function addMessage(content, sender, isStreaming = false) {
+        function addMessage(content, sender) {
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message', `${sender}-message`);
             
@@ -147,10 +202,7 @@
             
             chatContainer.appendChild(messageDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
-            
-            return contentDiv;
         }
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </body>
 </html>
