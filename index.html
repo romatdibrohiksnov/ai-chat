@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>AI聊天</title>
     <style>
-	        body {
+        body {
             margin: 0;
             padding: 20px;
             min-height: 100vh;
@@ -120,28 +120,6 @@
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
             margin: 20px 0;
         }
-        .typing-indicator {
-            display: inline-block;
-            padding: 10px 15px;
-            background: #f0f0f0;
-            border-radius: 15px;
-        }
-        .typing-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            margin-right: 3px;
-            background: #666;
-            border-radius: 50%;
-            animation: typing 1.4s infinite;
-        }
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-        
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-5px); }
-        }
     </style>
 </head>
 <body>
@@ -168,7 +146,7 @@
             }
         });
 
-		async function sendMessage() {
+        async function sendMessage() {
             const message = userInput.value.trim();
             if (!message) return;
 
@@ -177,10 +155,6 @@
             userInput.value = '';
 
             try {
-                const typingIndicator = createTypingIndicator();
-                const tempMessage = addMessage('', 'ai');
-                tempMessage.appendChild(typingIndicator);
-
                 const response = await fetch(API_BASE + ENDPOINT, {
                     method: 'POST',
                     headers: {
@@ -189,62 +163,22 @@
                     },
                     body: JSON.stringify({
                         model: "gpt-3.5-turbo",
-                        messages: [{ role: "user", content: message }],
-                        stream: true 
+                        messages: [{ role: "user", content: message }]
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error(`请求失败 (状态码: ${response.status})`);
-                }
-
-
-                tempMessage.removeChild(typingIndicator);
-                
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let buffer = '';
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    buffer += decoder.decode(value, { stream: true });
-                    const parts = buffer.split('\n');
-                    buffer = parts.pop() || '';
-
-                    for (const part of parts) {
-                        const message = part.replace(/^data: /, '');
-                        if (message === '[DONE]') break;
-
-                        try {
-                            const parsed = JSON.parse(message);
-                            const content = parsed.choices[0].delta.content;
-                            if (content) {
-                                tempMessage.textContent += content;
-                                chatContainer.scrollTop = chatContainer.scrollHeight;
-                            }
-                        } catch (error) {
-                            console.error('解析错误:', error);
-                        }
-                    }
+                const data = await response.json();
+                if (response.ok) {
+                    const aiMessage = data.choices[0].message.content;
+                    addMessage(aiMessage, 'ai');
+                } else {
+                    throw new Error(data.error?.message || `请求失败 (状态码: ${response.status})`);
                 }
             } catch (error) {
                 addMessage(`错误：${error.message}`, 'ai');
             } finally {
                 sendBtn.disabled = false;
             }
-        }
-
-        function createTypingIndicator() {
-            const container = document.createElement('div');
-            container.className = 'typing-indicator';
-            container.innerHTML = `
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-            `;
-            return container;
         }
 
         function addMessage(content, sender) {
@@ -257,9 +191,8 @@
             const contentDiv = document.createElement('div');
             contentDiv.classList.add('message-content');
             contentDiv.textContent = content;
-
+            
             if (sender === 'user') {
-                messageDiv.style.flexDirection = 'row-reverse';
                 messageDiv.appendChild(contentDiv);
                 messageDiv.appendChild(avatar);
             } else {
@@ -269,8 +202,6 @@
             
             chatContainer.appendChild(messageDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
-            
-            return contentDiv; 
         }
     </script>
 </body>
