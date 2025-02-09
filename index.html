@@ -4,148 +4,33 @@
     <meta charset="UTF-8">
     <title>AI聊天</title>
     <style>
-        body {
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-        }
-
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        #chat-container {
-            height: 70vh;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-bottom: 20px;
-            overflow-y: auto;
-        }
-
-        .message {
-            margin: 15px 0;
-            padding: 12px 18px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            max-width: 80%;
-            position: relative;
-        }
-
-        .user-message {
-            background: rgba(255, 255, 255, 0.95);
-            margin-left: auto;
-            flex-direction: row-reverse;
-        }
-
-        .ai-message {
-            background: rgba(255, 255, 255, 0.95);
-            margin-right: auto;
-        }
-
-        .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            flex-shrink: 0;
-            margin: 0 12px;
-        }
-
-        .user-avatar {
-            background: linear-gradient(45deg, rgba(255, 87, 34, 0.8), rgba(255, 152, 0, 0.8));
-            box-shadow: 0 2px 6px rgba(255, 87, 34, 0.3);
-        }
-
-        .ai-avatar {
-            background: linear-gradient(45deg, rgba(33, 150, 243, 0.8), rgba(66, 165, 245, 0.8));
-            box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
-        }
-
-        .message-content {
+        .typing-indicator {
+            display: inline-block;
             padding: 10px 15px;
-            line-height: 1.5;
+            background: #f0f0f0;
+            border-radius: 15px;
         }
-
-        #input-container {
-            display: flex;
-            gap: 12px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 25px;
-            padding: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        .typing-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            margin-right: 3px;
+            background: #666;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
         }
-
-        #user-input {
-            flex: 1;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 20px;
-            background: rgba(245, 245, 245, 0.8);
-            font-size: 16px;
-            outline: none;
-        }
-
-        button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 20px;
-            background: linear-gradient(45deg, #2196F3, #42A5F5);
-            color: white;
-            font-weight: 500;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-        }
-
-        button:disabled {
-            background: #cccccc;
-            transform: none;
-        }
-
-        h1 {
-            color: white;
-            text-align: center;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            margin: 20px 0;
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
         }
     </style>
 </head>
 <body>
-    <h1>AI聊天助手</h1>
-    <div id="chat-container"></div>
-    <div id="input-container">
-        <input type="text" id="user-input" placeholder="输入消息...">
-        <button onclick="sendMessage()" id="send-btn">发送</button>
-    </div>
-
+    
     <script>
-        const API_KEY = 'sk-Boq4p7UH7lbzybrEQPmve7HJA01QAwgoFuCKjgQZbBPzCDqS';
-        const API_BASE = 'https://chatapi.littlewheat.com/v1';
-        const ENDPOINT = '/chat/completions';
-
-        const chatContainer = document.getElementById('chat-container');
-        const userInput = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
-
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-
         async function sendMessage() {
             const message = userInput.value.trim();
             if (!message) return;
@@ -155,6 +40,10 @@
             userInput.value = '';
 
             try {
+                const typingIndicator = createTypingIndicator();
+                const tempMessage = addMessage('', 'ai');
+                tempMessage.appendChild(typingIndicator);
+
                 const response = await fetch(API_BASE + ENDPOINT, {
                     method: 'POST',
                     headers: {
@@ -163,22 +52,62 @@
                     },
                     body: JSON.stringify({
                         model: "gpt-3.5-turbo",
-                        messages: [{ role: "user", content: message }]
+                        messages: [{ role: "user", content: message }],
+                        stream: true 
                     })
                 });
 
-                const data = await response.json();
-                if (response.ok) {
-                    const aiMessage = data.choices[0].message.content;
-                    addMessage(aiMessage, 'ai');
-                } else {
-                    throw new Error(data.error?.message || `请求失败 (状态码: ${response.status})`);
+                if (!response.ok) {
+                    throw new Error(`请求失败 (状态码: ${response.status})`);
+                }
+
+
+                tempMessage.removeChild(typingIndicator);
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const parts = buffer.split('\n');
+                    buffer = parts.pop() || '';
+
+                    for (const part of parts) {
+                        const message = part.replace(/^data: /, '');
+                        if (message === '[DONE]') break;
+
+                        try {
+                            const parsed = JSON.parse(message);
+                            const content = parsed.choices[0].delta.content;
+                            if (content) {
+                                tempMessage.textContent += content;
+                                chatContainer.scrollTop = chatContainer.scrollHeight;
+                            }
+                        } catch (error) {
+                            console.error('解析错误:', error);
+                        }
+                    }
                 }
             } catch (error) {
                 addMessage(`错误：${error.message}`, 'ai');
             } finally {
                 sendBtn.disabled = false;
             }
+        }
+
+        function createTypingIndicator() {
+            const container = document.createElement('div');
+            container.className = 'typing-indicator';
+            container.innerHTML = `
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            `;
+            return container;
         }
 
         function addMessage(content, sender) {
@@ -191,8 +120,9 @@
             const contentDiv = document.createElement('div');
             contentDiv.classList.add('message-content');
             contentDiv.textContent = content;
-            
+
             if (sender === 'user') {
+                messageDiv.style.flexDirection = 'row-reverse';
                 messageDiv.appendChild(contentDiv);
                 messageDiv.appendChild(avatar);
             } else {
@@ -202,6 +132,8 @@
             
             chatContainer.appendChild(messageDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            return contentDiv; 
         }
     </script>
 </body>
