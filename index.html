@@ -4,50 +4,15 @@
     <meta charset="UTF-8">
     <title>AI聊天助手</title>
     <style>
-        body {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-        }
-        #chat-container {
-            height: 500px;
-            border: 1px solid #ccc;
-            padding: 20px;
-            margin-bottom: 20px;
-            overflow-y: auto;
-        }
-        .message {
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .user-message {
-            background-color: #e3f2fd;
-            margin-left: 20%;
-        }
-        .ai-message {
-            background-color: #f5f5f5;
-            margin-right: 20%;
-        }
-        #input-container {
-            display: flex;
-            gap: 10px;
-        }
-        #user-input {
-            flex: 1;
-            padding: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:disabled {
-            background-color: #cccccc;
-        }
+        body { max-width: 800px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif; }
+        #chat-container { height: 500px; border: 1px solid #ccc; padding: 20px; margin-bottom: 20px; overflow-y: auto; }
+        .message { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .user-message { background-color: #e3f2fd; margin-left: 20%; }
+        .ai-message { background-color: #f5f5f5; margin-right: 20%; }
+        #input-container { display: flex; gap: 10px; }
+        #user-input { flex: 1; padding: 10px; }
+        button { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:disabled { background-color: #cccccc; }
     </style>
 </head>
 <body>
@@ -59,15 +24,17 @@
     </div>
 
     <script>
-        // 注意：这是不安全的做法，仅用于演示目的
+        
         const API_KEY = 'sk-Boq4p7UH7lbzybrEQPmve7HJA01QAwgoFuCKjgQZbBPzCDqS';
-        const API_URL = 'https://api.openai.com/v1/chat/completions';
+        const API_BASE = 'https://chatapi.littlewheat.com/v1';
+        const ENDPOINT = '/chat/completions'; 
 
+      
         const chatContainer = document.getElementById('chat-container');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
 
-        // 添加回车键支持
+        // 添加回车支持
         userInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -79,13 +46,12 @@
             const message = userInput.value.trim();
             if (!message) return;
 
-            // 禁用按钮防止重复提交
             sendBtn.disabled = true;
             addMessage(message, 'user');
             userInput.value = '';
 
             try {
-                const response = await fetch(API_URL, {
+                const response = await fetch(API_BASE + ENDPOINT, {  
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -93,10 +59,7 @@
                     },
                     body: JSON.stringify({
                         model: "gpt-3.5-turbo",
-                        messages: [{
-                            role: "user",
-                            content: message
-                        }]
+                        messages: [{ role: "user", content: message }]
                     })
                 });
 
@@ -105,7 +68,7 @@
                     const aiMessage = data.choices[0].message.content;
                     addMessage(aiMessage, 'ai');
                 } else {
-                    throw new Error(data.error?.message || '请求失败');
+                    throw new Error(data.error?.message || `请求失败 (状态码: ${response.status})`);
                 }
             } catch (error) {
                 addMessage(`错误：${error.message}`, 'ai');
@@ -119,7 +82,6 @@
             messageDiv.classList.add('message', `${sender}-message`);
             messageDiv.textContent = content;
             chatContainer.appendChild(messageDiv);
-            // 自动滚动到底部
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
     </script>
