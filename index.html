@@ -153,7 +153,22 @@
     </div>
 
     <script>
-        async function sendMessage() {
+        const API_KEY = 'sk-Boq4p7UH7lbzybrEQPmve7HJA01QAwgoFuCKjgQZbBPzCDqS';
+        const API_BASE = 'https://chatapi.littlewheat.com/v1';
+        const ENDPOINT = '/chat/completions';
+
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+		async function sendMessage() {
             const message = userInput.value.trim();
             if (!message) return;
 
